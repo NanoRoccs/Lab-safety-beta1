@@ -1,23 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lab Safety & Hazard Management Simulator</title>
     <style>
         :root {
-            --bg-color: #f4f6f9;
+            --bg-color: #f7fafc;
             --card-bg: #ffffff;
-            --text-main: #2d3748;
-            --primary: #3182ce;
-            --primary-hover: #2b6cb0;
-            --danger: #e53e3e;
-            --success: #38a169;
+            --text-main: #1a202c;
+            --text-muted: #4a5568;
+            --primary: #2b6cb0;
+            --primary-hover: #2c5282;
+            --danger: #c53030;
+            --success: #2f855a;
             --border: #e2e8f0;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Prompt, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
             line-height: 1.6;
@@ -31,32 +32,46 @@
 
         .game-container {
             background: var(--card-bg);
-            max-width: 650px;
+            max-width: 700px;
             width: 100%;
-            padding: 30px;
+            padding: 35px;
             border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             border: 1px solid var(--border);
         }
 
         header {
             border-bottom: 2px solid var(--border);
-            padding-bottom: 15px;
+            padding-bottom: 20px;
             margin-bottom: 25px;
-            text-align: center;
         }
 
         h1 {
             font-size: 1.5rem;
             margin: 0;
-            color: var(--text-main);
+            color: #2d3748;
+            text-align: center;
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            color: var(--primary);
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        .progress-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
         }
 
         .progress-bar {
-            height: 6px;
+            flex-grow: 1;
+            height: 8px;
             background-color: var(--border);
-            border-radius: 3px;
-            margin-top: 15px;
+            border-radius: 4px;
             overflow: hidden;
         }
 
@@ -64,49 +79,55 @@
             height: 100%;
             width: 0%;
             background-color: var(--primary);
-            transition: width 0.3s ease;
+            transition: width 0.4s ease;
+        }
+
+        .progress-text {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            min-width: 35px;
         }
 
         .scenario-text {
             font-size: 1.1rem;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
             white-space: pre-line;
+            color: #2d3748;
         }
 
         .choices-container {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 14px;
         }
 
         button {
             background-color: var(--card-bg);
             color: var(--text-main);
-            border: 2px solid var(--primary);
+            border: 2px solid #cbd5e0;
             padding: 14px 20px;
-            font-size: 1rem;
+            font-size: 0.95rem;
             border-radius: 8px;
             cursor: pointer;
             text-align: left;
-            transition: all 0.2s ease;
+            transition: all 0.2s ease-in-out;
             font-weight: 500;
         }
 
         button:hover {
-            background-color: var(--primary);
-            color: white;
-            transform: translateY(-1px);
-        }
-
-        button:active {
-            transform: translateY(1px);
+            border-color: var(--primary);
+            background-color: #ebf8ff;
+            color: var(--primary);
+            transform: translateX(2px);
         }
 
         .outcome-card {
-            padding: 15px;
+            padding: 18px;
             border-radius: 8px;
-            margin-bottom: 20px;
-            font-weight: 500;
+            margin-bottom: 25px;
+            font-weight: 600;
+            font-size: 1.05rem;
             display: none;
         }
 
@@ -114,27 +135,30 @@
             display: block;
             background-color: #f0fff4;
             border: 1px solid var(--success);
-            color: #22543d;
+            color: var(--success);
         }
 
         .outcome-card.danger {
             display: block;
             background-color: #fff5f5;
             border: 1px solid var(--danger);
-            color: #742a2a;
+            color: var(--danger);
         }
 
         .restart-btn {
-            background-color: var(--text-main);
+            background-color: #4a5568;
             color: white;
             border: none;
             text-align: center;
-            margin-top: 20px;
+            margin-top: 25px;
             width: 100%;
+            font-weight: 600;
         }
         
         .restart-btn:hover {
-            background-color: #4a5568;
+            background-color: #2d3748;
+            color: white;
+            transform: none;
         }
     </style>
 </head>
@@ -142,171 +166,248 @@
 
 <div class="game-container">
     <header>
-        <h1 id="game-title">Lab Safety & Hazard Management</h1>
-        <div class="progress-bar"><div id="progress" class="progress-fill"></div></div>
+        <h1 id="game-title">ระบบจำลองการจัดการเหตุฉุกเฉินและสารเคมีอันตราย</h1>
+        <div class="progress-container">
+            <div class="progress-bar"><div id="progress" class="progress-fill"></div></div>
+            <span id="progress-lbl" class="progress-text">0%</span>
+        </div>
     </header>
 
     <div id="outcome" class="outcome-card"></div>
-    <div id="scenario" class="scenario-text">Loading simulation...</div>
+    <h2 id="stage-title"></h2>
+    <div id="scenario" class="scenario-text">กำลังโหลดระบบ...</div>
     <div id="choices" class="choices-container"></div>
 </div>
 
 <script>
-    // Game state data structure mapping the decision tree
-    const storyData = {
-        start: {
-            text: "Welcome to the Lab Safety Simulation. You are supervising an undergraduate laboratory session when a series of potential safety issues arise. Choose a scenario to manage:",
-            choices: [
-                { text: "Scenario A: A concentrated Acid Spill", next: "acid_spill" },
-                { text: "Scenario B: A chemical splash in a student's eye", next: "eye_splash" },
-                { text: "Scenario C: Finding a critical waste management bottleneck", next: "waste_issue" }
+    // อาร์เรย์จำลองสเตจที่คัดลอกมาจากสคริปต์ Python ของคุณ
+    const stages = [
+        {
+            "id": 1,
+            "title": "การเตรียมตัวเข้าพื้นที่",
+            "story": "คุณมาถึงตึกมหามกุฏเพื่อเริ่มงานวิจัยวันแรก... คุณต้องจัดการเครื่องแต่งกายอย่างไรก่อนเข้าแล็บ?",
+            "options": [
+                "1. สวมเสื้อคลุมปฏิบัติการ ติดกระดุมครบ สวมแว่นตานิรภัย และรองเท้าหนังหุ้มส้น",
+                "2. สวมเสื้อคลุมปฏิบัติการ สวมรองเท้าผ้าใบ และพกขวดน้ำเข้าไป",
+                "3. สวมเสื้อคลุมปฏิบัติการทับชุดนักศึกษาโดยไม่ติดกระดุม และสวมคอนแทคเลนส์",
+                "4. สวมแว่นสายตาปกติแทนแว่นนิรภัย และสวมรองเท้าส้นสูง"
             ],
-            progress: 10
+            "correct": 1,
+            "critical_error": 4,
+            "fail_message": "คุณสะดุดล้มหัวกระแทกพื้นเพราะสวมรองเท้าส้นสูง"
         },
-        
-        // --- ACID SPILL PATHWAY ---
-        acid_spill: {
-            text: "An undergraduate student accidentally knocks over a bottle of 6M Hydrochloric Acid (HCl) on the benchtop. Approximately 100 mL is spreading. What is your immediate action?",
-            choices: [
-                { text: "Grab paper towels from the sink to wipe it up immediately.", next: "acid_fail_towels" },
-                { text: "Evacuate the immediate bench area and locate the spill kit.", next: "acid_spill_kit" },
-                { text: "Do nothing.", next: "acid_fail_fuming"}
+        {
+            "id": 2,
+            "title": "เริ่มยังไงดีนะ",
+            "story": "สารที่คุณจะสังเคราะห์วันนี้จำเป็นต้องใช้ n-butyl lithium คุณคุ้นมาก ๆ ว่าสารตัวนี้ค่อนข้างอันตรายแต่ก็ไม่ค่อยมั่นใจเท่าไหร่ จะเลือกทำงานกับมันยังไงดี",
+            "options": [
+                "1. เริ่มทำความสะอาดเครื่องแก้วให้แห้งสนิทแล้วเตรียมตวงสารทันที",
+                "2. ตรวจสอบ SDS และทำแผนประเมินความเสี่ยงเป็นลายลักษณ์อักษร",
+                "3. ถามเพื่อนในแลบที่เคยทำงานกับสารนี้มาก่อน",
+                "4. ค้นหาวิธีทำงานกับสารนี้จาก AI"
             ],
-            progress: 40
+            "correct": 2,
+            "critical_error": null,
+            "fail_message": null
         },
-        acid_fail_towels: {
-            text: "CRITICAL FAILURE:\nPaper towels react poorly, degrade rapidly, and fail to neutralize the acid, leading to skin exposure through saturated paper. Acid fumes fill the immediate air zone. The situation escalates.",
-            type: "danger",
-            choices: [{ text: "Restart Simulation", next: "start" }],
-            progress: 100
-        },
-        acid_fail_fuming: {
-            text: "CRITICAL FAILURE:\nLeaving spilled fuming acid lead to acid fumes filling the room. The danger escalates.",
-            type: "danger",
-            choices: [{ text: "Restart Simulation", next: "start"}],
-            progress: 100
-        },
-        acid_spill_kit: {
-            text: "Good. The students are safely clear. You retrieve the chemical spill kit. The kit contains Sodium Bicarbonate (amphoteric neutralizer) and inert absorbent pads. How do you apply the treatment?",
-            choices: [
-                { text: "Pour Sodium Bicarbonate slowly around the perimeter of the spill, working inward.", next: "acid_success" },
-                { text: "Dump the neutralizer directly into the center of the pool to stop it fast.", next: "acid_fail_center" }
+        {
+            "id": 3,
+            "title": "มีพัสดุมาส่งครับ",
+            "story": "ระหว่างวางแผนการทดลองมีเจ้าหน้าที่แจ้งว่าได้นำแก๊สไนโตรเจนมาส่ง ให้คุณไปเคลื่อนย้ายถังมาจากหน้าลิฟต์ขนของ",
+            "options": [
+                "1. ใช้มือหมุนก้นถังในแนวตั้งเพื่อย้ายถังแก๊สเข้ามาที่ห้องปฏิบัติการ",
+                "2. ปลดฝาครอบวาล์วออกก่อนเพื่อเตรียมต่อสาย manifold ขณะเคลื่อนย้าย",
+                "3. เอียงถังและกลิ้งถังตามแนวนอนเพื่อย้ายถังแก๊สเข้ามาที่ห้องปฏิบัติการ",
+                "4. ใช้รถเข็นที่มีสายรัดถังแก๊สแน่นหนาเพื่อเคลื่อนย้ายถัง"
             ],
-            progress: 70
+            "correct": 4,
+            "critical_error": 3,
+            "fail_message": "ถังที่กลิ้งมาไปชนขอบกำแพงทำให้เกิดรอยรั่ว แก๊สที่อัดแน่นด้วยความดันระเบิดออกอย่างรุนแรง"
         },
-        acid_fail_center: {
-            text: "HAZARD ESCALATION:\nDumping a base rapidly into the center of a concentrated acid pool causes a highly exothermic neutralization reaction. The sudden heat generation causes violent splattering of unneutralized acid.",
-            type: "danger",
-            choices: [{ text: "Restart Simulation", next: "start" }],
-            progress: 100
-        },
-        acid_success: {
-            text: "SUCCESS:\nBy neutralizing from the outer boundary inward, you contained the liquid volume safely. The evolution of carbon dioxide gas subsides, confirming neutralization. The slurry is swept up safely into chemical waste bags. Excellent containment strategy.",
-            type: "success",
-            choices: [{ text: "Try another scenario", next: "start" }],
-            progress: 100
-        },
-
-        // --- EYE SPLASH PATHWAY ---
-        eye_splash: {
-            text: "A student adjusts their splash goggles onto their forehead just as a nearby test tube vigorously bumps, splashing an unknown aqueous solution directly into their eye. The student panics.",
-            choices: [
-                { text: "Guide them immediately to the eyewash station and initiate flushing.", next: "eyewash_start" },
-                { text: "Run to fetch a neutralizing solution or buffer kit from the medicine locker.", next: "eye_fail_neutralize" }
+        {
+            "id": 4,
+            "title": "ทำไมลมมันเบา ๆ",
+            "story": "หลังจากต่อถังแก๊สไนโตรเจนเรียบร้อยแล้ว คุณได้เริ่มลงมือปฏิบัติการตามแผนที่วางไว้ ระหว่างที่คุณกำลังถ่ายเท n-butyl lithium ในตู้ดูดควันปรากฏว่ามีเสียงเตือนเรื่องแรงลมเกิดขึ้น",
+            "options": [
+                "1. ยกหน้าต่างตู้ดูดควันขึ้นจนสุดแล้วยื่นหน้าเข้าไปดูว่าเกิดอะไรผิดปกติขึ้นหรือไม่",
+                "2. ดึงหน้าต่างตู้ลงมาให้ต่ำลงแต่ไม่เกิน 1 ฟุตจากขอบ และขยับตัวออกเล็กน้อยเพื่อทำงานให้ห่างจากขอบตู้ประมาณ 6-10 นิ้ว",
+                "3. ยกหน้าต่างตู้ดูดควันขึ้นระดับสายตาเพื่อให้การระบายลมดีขึ้น",
+                "4. นำขวดสารออกมาตวงภายนอกตู้ดูดควันบนโต๊ะปฏิบัติการ"
             ],
-            progress: 40
+            "correct": 2,
+            "critical_error": 4,
+            "fail_message": "n-butyl lithium สัมผัสความชื้นในอากาศและเกิดเปลวไฟลุกทันที คุณได้รับบาดเจ็บจากไฟไหม้และห้องปฏิบัติการเสียหายอย่างรุนแรง"
         },
-        eye_fail_neutralize: {
-            text: "CRITICAL FAILURE:\nNever attempt to chemical neutralize a splash in the human eye! The exothermic reaction energy will cause severe thermal burns on top of the existing chemical damage. Seconds count, and searching for a buffer delayed critical mechanical washing.",
-            type: "danger",
-            choices: [{ text: "Restart Simulation", next: "start" }],
-            progress: 100
-        },
-        eyewash_start: {
-            text: "Correct. Immediate mechanical flushing is critical. You arrive at the eyewash station. How do you instruct and assist the student?",
-            choices: [
-                { text: "Have them hold their eyelids open with their fingers and flush continuously for 15 minutes.", next: "eye_success" },
-                { text: "Tell them to blink rapidly under the water stream for 2 to 3 minutes until it stops stinging.", next: "eye_fail_short" }
+        {
+            "id": 5,
+            "title": "เร่งปฏิกิริยากันหน่อย",
+            "story": "หลังจากถ่ายสารเรียบร้อยแล้วคุณจำเป็นจะต้องให้ความร้อนกับปฏิกิริยานี้ซึ่งใช้ hexane เป็นตัวทำละลาย (จุดเดือด 69 องศาเซลเซียส)",
+            "options": [
+                "1. ตั้ง flask บน hot plate stirrer และเปิดความร้อนสูงสุดเพื่อให้ปฏิกิริยาถึงจุดเดือดไว ๆ",
+                "2. ใช้เตาไฟฟ้าในการให้ความร้อนโดยตรงโดยที่ตั้งขวด n-butyl lithium และ hexane ไว้ใกล้ ๆ",
+                "3. ใช้เครื่องอังไอน้ำหรืออ่างน้ำร้อน (water bath) ในการให้ความร้อน",
+                "4. ใช้ตะเกียงแอลกอฮอล์ในการให้ความร้อนและควบคุมอุณหภูมิโดยการยก flask ขึ้น-ลง"
             ],
-            progress: 70
+            "correct": 3,
+            "critical_error": 2,
+            "fail_message": "เตาไฟฟ้าเกิดการทำงานผิดพลาดทำให้เกิดไอระเหยของตัวทำละลายซึ่งเกิดการวาบและติดไฟขึ้นและลามไปยังขวดสารเคมีใกล้ ๆ ทำให้เกิดการระเบิดอย่างรุนแรง!"
         },
-        eye_fail_short: {
-            text: "FAILURE:\n2-3 minutes is wildly insufficient. Chemicals can diffuse deep into corneal tissue. Washing must be maintained for a minimum of 15-20 minutes to thoroughly dilute and remove residual hazards. Cornea damage risk remains high.",
-            type: "danger",
-            choices: [{ text: "Restart Simulation", next: "start" }],
-            progress: 100
-        },
-        eye_success: {
-            text: "SUCCESS:\nAssisting them to manually hold the eyelids open ensures irrigation reaches the entire conjunctival sac. After 15 minutes of continuous flushing, you coordinate professional medical evaluation. You mitigated permanent optical injury through standard protocols.",
-            type: "success",
-            choices: [{ text: "Try another scenario", next: "start" }],
-            progress: 100
-        },
-
-        // --- WASTE BOTTLENECK PATHWAY ---
-        waste_issue: {
-            text: "During lab cleanup, you find the designated 'Halogenated Organic Waste' container is filled completely to the brim. A student is waiting to dump 50 mL of dichloromethane waste.",
-            choices: [
-                { text: "Instruct the student to temporarily use the adjacent Non-Halogenated container to avoid a backlog.", next: "waste_fail_mix" },
-                { text: "Halt waste disposal, tightly cap the full container, transfer it to the fume hood storage, and locate a fresh, appropriately labeled carboy.", next: "waste_success" }
+        {
+            "id": 6,
+            "title": "อุบัติเหตุเกิดขึ้นได้",
+            "story": "ระหว่างที่คุณจะลุกไปหยิบบีกเกอร์ที่โต๊ะด้านหลังคุณเกิดปัดขวดกรดซัลฟิวริกเข้มข้นที่วางอยู่ใกล้ ๆ ตกพื้นแตก มีกรดบางส่วนกระเด็นโดนกางเกงของคุณ",
+            "options": [
+                "1. รีบหาสารละลายเบสอ่อน ๆ มาเทราดที่ขาเพื่อสะเทินฤทธิ์ของกรด จากนั้นจึงไปล้างขาโดยใช้ Safety Shower",
+                "2. วิ่งไปที่อ่างล้างของพร้อมร้องขอความช่วยเหลือและล้างด้วยน้ำน้อย ๆ เพื่อไม่ให้เสื้อผ้าเปียก",
+                "3. ใช้กระดาษทิชชู่ซับกรดเข้มข้นออกจากผิวหนังให้แห้งที่สุดแล้วจากนั้นจึงไปล้างน้ำ",
+                "4. ตะโกนขอความช่วยเหลือพร้อมถอดเสื้อผ้าที่ปนเปื้อน และใช้ Safety Shower ล้างอย่างน้อย 15 นาที"
             ],
-            progress: 60
+            "correct": 4,
+            "critical_error": 1,
+            "fail_message": "เกิดปฏิกิริยาสะเทินระหว่างกรดกับเบสทำให้เกิดความร้อนขึ้นซึ่งส่งผลให้เกิดแผลไหม้จากความร้อนตามมา นอกจากนี้คุณยังถูกเบสทำลายเนื้อเยื่อผิวหนังเพิ่มขึ้นด้วย"
         },
-        waste_fail_mix: {
-            text: "CRITICAL FAILURE:\nMixing halogenated and non-halogenated waste streams significantly complicates incineration and disposal protocols, massively driving up department costs. More critically, mixing incompatible organic wastes can trigger pressurized gas evolution or explosive reactions in storage.",
-            type: "danger",
-            choices: [{ text: "Restart Simulation", next: "start" }],
-            progress: 100
+        {
+            "id": 7,
+            "title": "ไฟลามทุ่ง",
+            "story": "ระหว่างที่คุณกำลังวุ่นกับการล้างขาอยู่นั้น ปฏิกิริยาที่ตั้งไว้เกิดความร้อนมากเกินจนทำให้เกิดไฟลุกขึ้น ประกายไฟที่เล็ดลอดออกมาจากตู้ดูดควันเริ่มไปติดที่กองกระดาษและลามไปยังชั้นวางสารเคมี",
+            "options": [
+                "1. ดึงสัญญาณเตือนไฟไหม้และรีบตักน้ำจากอ่างล้างเครื่องแก้วมาราดดับไฟที่ชั้นเก็บสารเคมีก่อนเนื่องจากเป็นแหล่งเชื้อเพลิงที่อันตรายที่สุด",
+                "2. ดึงสัญญาณเตือนไฟไหม้และใช้ถังดับเพลิง CO2 ฉีดเข้าไปที่ฐานของไฟ",
+                "3. รีบเก็บของมีค่าและโน้ตบุ๊กใส่กระเป๋าก่อนวิ่งออกจากห้องพร้อมตะโกนแจ้งทุกคนที่ทำงานอยู่ใกล้ ๆ",
+                "4. ปิดประตูหน้าต่างทุกบานให้สนิทเพื่อตัดอากาศแล้วหลบอยู่ใต้โต๊ะแลบ"
+            ],
+            "correct": 2,
+            "critical_error": 1,
+            "fail_message": "น้ำที่สาดไปเกิดปฏิกิริยากับสารเคมีบางชนิดทำให้เพลิงระเบิด คุณโดนแรงระเบิดนั้นจนทำให้บาดเจ็บอย่างรุนแรง"
         },
-        waste_success: {
-            text: "SUCCESS:\nYou maintained proper segregation of waste streams and prevented overfilling hazards (always leave headspace for pressure expansion). Sourcing a fresh, certified container ensures secondary containment compatibility and regulatory compliance.",
-            type: "success",
-            choices: [{ text: "Try another scenario", next: "start" }],
-            progress: 100
+        {
+            "id": 8,
+            "title": "กลิ่นลึกลับ",
+            "story": "หลังจากดับไฟสำเร็จและควันจางลงคุณได้กลิ่นฉุนรุนแรงคล้ายแอมโมเนียและเริ่มรู้สึกวิงเวียนศีรษะ คุณนึกขึ้นได้ว่าที่ห้องแลบมีถังแก๊สแอมโมเนียซึ่งอาจจะรั่วจากอุบัติเหตุครั้งนี้ได้",
+            "options": [
+                "1. สวมหน้ากาก N95 แล้วรีบเข้าไปปิดวาล์วถังแก๊สให้สนิทก่อนจะรั่วไหลมากกว่านี้",
+                "2. ใส่หน้ากากกันแก๊สพิษและเดินหาจุดรั่วของแก๊สพร้อมทั้งกดสวิตช์เปิดพัดลมระบายอากาศเพื่อไล่กลิ่น",
+                "3. รีบบอกทุกคนในพื้นที่ให้อพยพออกไปยังจุดรวมพลพร้อมแจ้งผู้ดูแลห้องปฏิบัติการ",
+                "4. นำสเปรย์ปรับอากาศมาฉีดพ่นเพื่อลดความรุนแรงของกลิ่น"
+            ],
+            "correct": 3,
+            "critical_error": 2,
+            "fail_message": "พัดลมระบายอากาศได้รับความเสียหายจากไฟไหม้จึงเกิดไฟฟ้าลัดวงจรขึ้นเมื่อเปิดสวิตช์ ประกายไฟที่เกิดขึ้นทำให้แก๊สที่รั่วไหลเกิดการระเบิดขึ้นทำให้ห้องแลบพังเสียหาย"
+        },
+        {
+            "id": 9,
+            "title": "เคลียร์จุดเกิดเหตุ",
+            "story": "เมื่อสถานการณ์ทุกอย่างปลอดภัยแล้ว คุณต้องจัดการกับเศษแก้วและวัสดุดูดซับสารเคมีบนพื้น",
+            "options": [
+                "1. รวบรวมเศษแก้วใส่ถุงพลาสติกสีดำและทิ้งลงถังขยะส่วนกลางของอาคาร",
+                "2. แยกเศษแก้วใส่กล่องกระดาษและวัสดุซับสารเคมีปนเปื้อนลงถังพร้อมทั้งแปะป้ายให้เรียบร้อย",
+                "3. ล้างกากสารเคมีบนพื้นลงท่อน้ำด้วยน้ำประปาจากนั้นจึงแยกทิ้งวัสดุดูดซับกับเศษแก้วให้ถูกประเภท",
+                "4. นำของเสียทั้งหมดมารวมกันในแกลลอนแล้วส่งเรื่องเพื่อส่งกำจัดของเสีย"
+            ],
+            "correct": 2,
+            "critical_error": null,
+            "fail_message": null
+        },
+        {
+            "id": 10,
+            "title": "บทสรุปและการเรียนรู้",
+            "story": "เมื่ออาจารย์ของคุณทราบเรื่องจึงได้บอกให้คุณเขียนรายงานเพื่อให้มหาวิทยาลัยรับทราบและนำข้อมูลไปปรับปรุงมาตรการความปลอดภัย",
+            "options": [
+                "1. บันทึกข้อมูลลงในสมุดแล็บส่วนตัวและนำเสนอในการประชุมกลุ่มแลบครั้งต่อไป",
+                "2. แจ้งเรื่องด้วยวาจาต่อรุ่นพี่ในห้องปฏิบัติการและทำความสะอาดห้องให้เหมือนไม่มีอะไรเกิดขึ้น",
+                "3. สรุปเหตุการณ์เมื่อสิ้นสุดภาคการศึกษาและส่งอาจารย์พร้อมรายงานผลการวิจัย",
+                "4. กรอกแบบรายงาน SHECU.ACC.01 ออนไลน์ภายใน 3 วันหลังจากเกิดเหตุ"
+            ],
+            "correct": 4,
+            "critical_error": null,
+            "fail_message": null
         }
-    };
+    ];
 
-    // Engine UI Renderer
-    function renderNode(nodeId) {
-        const node = storyData[nodeId];
-        if (!node) return;
+    let currentStageIndex = 0;
 
-        // Render text
-        document.getElementById("scenario").textContent = node.text;
-        
-        // Update progress bar
-        document.getElementById("progress").style.width = `${node.progress}%`;
-
-        // Handle outcomes (Success / Danger styles)
+    function renderStage(index) {
         const outcomeCard = document.getElementById("outcome");
-        outcomeCard.className = "outcome-card"; // reset classes
-        if (node.type) {
-            outcomeCard.classList.add(node.type);
-            outcomeCard.textContent = node.type === "success" ? "✓ SUCCESS" : "⚠ RISK DETECTED";
-        } else {
-            outcomeCard.textContent = "";
+        const choicesContainer = document.getElementById("choices");
+        
+        // ล้างสถานะข้อความแจ้งเตือนเดิม
+        outcomeCard.className = "outcome-card";
+        outcomeCard.textContent = "";
+        choicesContainer.innerHTML = "";
+
+        // กรณีที่ผ่านหมดทุกด่าน (จบเกมแบบปลอดภัย)
+        if (index >= stages.length) {
+            document.getElementById("stage-title").textContent = "🎉 ยินดีด้วย! คุณผ่านการทดสอบ";
+            document.getElementById("scenario").textContent = "คุณมีทักษะการจัดการความปลอดภัยและสารเคมีอันตรายในระดับยอดเยี่ยม สามารถปฏิบัติงานวิจัย ณ อาคารมหามกุฏได้อย่างปลอดภัย";
+            document.getElementById("progress").style.width = "100%";
+            document.getElementById("progress-lbl").textContent = "100%";
+            
+            const restartBtn = document.createElement("button");
+            restartBtn.textContent = "เริ่มทำแบบทดสอบใหม่อีกครั้ง";
+            restartBtn.classList.add("restart-btn");
+            restartBtn.onclick = () => {
+                currentStageIndex = 0;
+                renderStage(currentStageIndex);
+            };
+            choicesContainer.appendChild(restartBtn);
+            return;
         }
 
-        // Render choices
-        const choicesContainer = document.getElementById("choices");
-        choicesContainer.innerHTML = ""; // clear old options
+        const stage = stages[index];
+        
+        // อัปเดตเนื้อหาด่าน
+        document.getElementById("stage-title").textContent = `ด่านที่ ${stage.id}: ${stage.title}`;
+        document.getElementById("scenario").textContent = stage.story;
 
-        node.choices.forEach(choice => {
+        // คำนวณและแสดงค่าความคืบหน้า (Progress Bar)
+        const progressPercent = Math.round((index / stages.length) * 100);
+        document.getElementById("progress").style.width = `${progressPercent}%`;
+        document.getElementById("progress-lbl").textContent = `${progressPercent}%`;
+
+        // สร้างปุ่มเลือกคำตอบ (ตัวเลือก 1-4)
+        stage.options.forEach((option, optionIdx) => {
+            const currentOptionNumber = optionIdx + 1; // เปลี่ยนเป็นเลขคำตอบเริ่มจาก 1
             const btn = document.createElement("button");
-            btn.textContent = choice.text;
+            btn.textContent = option;
             
-            // Add custom style if it is a restart/reset button
-            if (choice.next === "start") {
-                btn.classList.add("restart-btn");
-            }
-
-            btn.onclick = () => renderNode(choice.next);
+            btn.onclick = () => handleAnswer(stage, currentOptionNumber);
             choicesContainer.appendChild(btn);
         });
     }
 
-    // Initialize the game
-    renderNode("start");
+    function handleAnswer(stage, chosenOption) {
+        const outcomeCard = document.getElementById("outcome");
+        const choicesContainer = document.getElementById("choices");
+
+        if (chosenOption === stage.correct) {
+            // หากตอบถูก ให้ย้ายไปสเตจถัดไปทันที
+            currentStageIndex++;
+            renderStage(currentStageIndex);
+        } else if (chosenOption === stage.critical_error) {
+            // เกิดข้อผิดพลาดร้ายแรง (Critical Error)
+            outcomeCard.classList.add("danger");
+            outcomeCard.textContent = "⚠ CRITICAL ERROR: เกิดอุบัติเหตุร้ายแรง!";
+            document.getElementById("scenario").textContent = stage.fail_message;
+            choicesContainer.innerHTML = ""; // ล้างตัวเลือกทิ้ง
+
+            // สร้างปุ่มรีสตาร์ทเพื่อเริ่มเกมใหม่
+            const resetBtn = document.createElement("button");
+            resetBtn.textContent = "กลับไปเริ่มด่านแรกใหม่";
+            resetBtn.classList.add("restart-btn");
+            resetBtn.onclick = () => {
+                currentStageIndex = 0;
+                renderStage(currentStageIndex);
+            };
+            choicesContainer.appendChild(resetBtn);
+        } else {
+            // หากเลือกคำตอบอื่นที่ผิด แต่ไม่ใช่ข้อวิกฤต (รวมถึงกรณีด่านที่ไม่มี critical error)
+            outcomeCard.className = "outcome-card danger";
+            outcomeCard.textContent = "❌ คำตอบไม่ถูกต้อง: วิธีปฏิบัตินี้ยังไม่ปลอดภัยพอ กรุณาพิจารณาใหม่อีกครั้ง";
+        }
+    }
+
+    // เริ่มรันระบบครั้งแรก
+    renderStage(currentStageIndex);
 </script>
 
 </body>
