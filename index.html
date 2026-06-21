@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab Safety & Hazard Management Simulator</title>
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-main: #2d3748;
+            --primary: #3182ce;
+            --primary-hover: #2b6cb0;
+            --danger: #e53e3e;
+            --success: #38a169;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .game-container {
+            background: var(--card-bg);
+            max-width: 650px;
+            width: 100%;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid var(--border);
+        }
+
+        header {
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin: 0;
+            color: var(--text-main);
+        }
+
+        .progress-bar {
+            height: 6px;
+            background-color: var(--border);
+            border-radius: 3px;
+            margin-top: 15px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background-color: var(--primary);
+            transition: width 0.3s ease;
+        }
+
+        .scenario-text {
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+            white-space: pre-line;
+        }
+
+        .choices-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        button {
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            border: 2px solid var(--primary);
+            padding: 14px 20px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        button:hover {
+            background-color: var(--primary);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .outcome-card {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+            display: none;
+        }
+
+        .outcome-card.success {
+            display: block;
+            background-color: #f0fff4;
+            border: 1px solid var(--success);
+            color: #22543d;
+        }
+
+        .outcome-card.danger {
+            display: block;
+            background-color: #fff5f5;
+            border: 1px solid var(--danger);
+            color: #742a2a;
+        }
+
+        .restart-btn {
+            background-color: var(--text-main);
+            color: white;
+            border: none;
+            text-align: center;
+            margin-top: 20px;
+            width: 100%;
+        }
+        
+        .restart-btn:hover {
+            background-color: #4a5568;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <header>
+        <h1 id="game-title">Lab Safety & Hazard Management</h1>
+        <div class="progress-bar"><div id="progress" class="progress-fill"></div></div>
+    </header>
+
+    <div id="outcome" class="outcome-card"></div>
+    <div id="scenario" class="scenario-text">Loading simulation...</div>
+    <div id="choices" class="choices-container"></div>
+</div>
+
+<script>
+    // Game state data structure mapping the decision tree
+    const storyData = {
+        start: {
+            text: "Welcome to the Lab Safety Simulation. You are supervising an undergraduate laboratory session when a series of potential safety issues arise. Choose a scenario to manage:",
+            choices: [
+                { text: "Scenario A: A concentrated Acid Spill", next: "acid_spill" },
+                { text: "Scenario B: A chemical splash in a student's eye", next: "eye_splash" },
+                { text: "Scenario C: Finding a critical waste management bottleneck", next: "waste_issue" }
+            ],
+            progress: 10
+        },
+        
+        // --- ACID SPILL PATHWAY ---
+        acid_spill: {
+            text: "An undergraduate student accidentally knocks over a bottle of 6M Hydrochloric Acid (HCl) on the benchtop. Approximately 100 mL is spreading. What is your immediate action?",
+            choices: [
+                { text: "Grab paper towels from the sink to wipe it up immediately.", next: "acid_fail_towels" },
+                { text: "Evacuate the immediate bench area and locate the spill kit.", next: "acid_spill_kit" }
+            ],
+            progress: 40
+        },
+        acid_fail_towels: {
+            text: "CRITICAL FAILURE:\nPaper towels react poorly, degrade rapidly, and fail to neutralize the acid, leading to skin exposure through saturated paper. Acid fumes fill the immediate air zone. The situation escalates.",
+            type: "danger",
+            choices: [{ text: "Restart Simulation", next: "start" }],
+            progress: 100
+        },
+        acid_spill_kit: {
+            text: "Good. The students are safely clear. You retrieve the chemical spill kit. The kit contains Sodium Bicarbonate (amphoteric neutralizer) and inert absorbent pads. How do you apply the treatment?",
+            choices: [
+                { text: "Pour Sodium Bicarbonate slowly around the perimeter of the spill, working inward.", next: "acid_success" },
+                { text: "Dump the neutralizer directly into the center of the pool to stop it fast.", next: "acid_fail_center" }
+            ],
+            progress: 70
+        },
+        acid_fail_center: {
+            text: "HAZARD ESCALATION:\nDumping a base rapidly into the center of a concentrated acid pool causes a highly exothermic neutralization reaction. The sudden heat generation causes violent splattering of unneutralized acid.",
+            type: "danger",
+            choices: [{ text: "Restart Simulation", next: "start" }],
+            progress: 100
+        },
+        acid_success: {
+            text: "SUCCESS:\nBy neutralizing from the outer boundary inward, you contained the liquid volume safely. The evolution of carbon dioxide gas subsides, confirming neutralization. The slurry is swept up safely into chemical waste bags. Excellent containment strategy.",
+            type: "success",
+            choices: [{ text: "Try another scenario", next: "start" }],
+            progress: 100
+        },
+
+        // --- EYE SPLASH PATHWAY ---
+        eye_splash: {
+            text: "A student adjusts their splash goggles onto their forehead just as a nearby test tube vigorously bumps, splashing an unknown aqueous solution directly into their eye. The student panics.",
+            choices: [
+                { text: "Guide them immediately to the eyewash station and initiate flushing.", next: "eyewash_start" },
+                { text: "Run to fetch a neutralizing solution or buffer kit from the medicine locker.", next: "eye_fail_neutralize" }
+            ],
+            progress: 40
+        },
+        eye_fail_neutralize: {
+            text: "CRITICAL FAILURE:\nNever attempt to chemical neutralize a splash in the human eye! The exothermic reaction energy will cause severe thermal burns on top of the existing chemical damage. Seconds count, and searching for a buffer delayed critical mechanical washing.",
+            type: "danger",
+            choices: [{ text: "Restart Simulation", next: "start" }],
+            progress: 100
+        },
+        eyewash_start: {
+            text: "Correct. Immediate mechanical flushing is critical. You arrive at the eyewash station. How do you instruct and assist the student?",
+            choices: [
+                { text: "Have them hold their eyelids open with their fingers and flush continuously for 15 minutes.", next: "eye_success" },
+                { text: "Tell them to blink rapidly under the water stream for 2 to 3 minutes until it stops stinging.", next: "eye_fail_short" }
+            ],
+            progress: 70
+        },
+        eye_fail_short: {
+            text: "FAILURE:\n2-3 minutes is wildly insufficient. Chemicals can diffuse deep into corneal tissue. Washing must be maintained for a minimum of 15-20 minutes to thoroughly dilute and remove residual hazards. Cornea damage risk remains high.",
+            type: "danger",
+            choices: [{ text: "Restart Simulation", next: "start" }],
+            progress: 100
+        },
+        eye_success: {
+            text: "SUCCESS:\nAssisting them to manually hold the eyelids open ensures irrigation reaches the entire conjunctival sac. After 15 minutes of continuous flushing, you coordinate professional medical evaluation. You mitigated permanent optical injury through standard protocols.",
+            type: "success",
+            choices: [{ text: "Try another scenario", next: "start" }],
+            progress: 100
+        },
+
+        // --- WASTE BOTTLENECK PATHWAY ---
+        waste_issue: {
+            text: "During lab cleanup, you find the designated 'Halogenated Organic Waste' container is filled completely to the brim. A student is waiting to dump 50 mL of dichloromethane waste.",
+            choices: [
+                { text: "Instruct the student to temporarily use the adjacent Non-Halogenated container to avoid a backlog.", next: "waste_fail_mix" },
+                { text: "Halt waste disposal, tightly cap the full container, transfer it to the fume hood storage, and locate a fresh, appropriately labeled carboy.", next: "waste_success" }
+            ],
+            progress: 60
+        },
+        waste_fail_mix: {
+            text: "CRITICAL FAILURE:\nMixing halogenated and non-halogenated waste streams significantly complicates incineration and disposal protocols, massively driving up department costs. More critically, mixing incompatible organic wastes can trigger pressurized gas evolution or explosive reactions in storage.",
+            type: "danger",
+            choices: [{ text: "Restart Simulation", next: "start" }],
+            progress: 100
+        },
+        waste_success: {
+            text: "SUCCESS:\nYou maintained proper segregation of waste streams and prevented overfilling hazards (always leave headspace for pressure expansion). Sourcing a fresh, certified container ensures secondary containment compatibility and regulatory compliance.",
+            type: "success",
+            choices: [{ text: "Try another scenario", next: "start" }],
+            progress: 100
+        }
+    };
+
+    // Engine UI Renderer
+    function renderNode(nodeId) {
+        const node = storyData[nodeId];
+        if (!node) return;
+
+        // Render text
+        document.getElementById("scenario").textContent = node.text;
+        
+        // Update progress bar
+        document.getElementById("progress").style.width = `${node.progress}%`;
+
+        // Handle outcomes (Success / Danger styles)
+        const outcomeCard = document.getElementById("outcome");
+        outcomeCard.className = "outcome-card"; // reset classes
+        if (node.type) {
+            outcomeCard.classList.add(node.type);
+            outcomeCard.textContent = node.type === "success" ? "✓ SUCCESS" : "⚠ RISK DETECTED";
+        } else {
+            outcomeCard.textContent = "";
+        }
+
+        // Render choices
+        const choicesContainer = document.getElementById("choices");
+        choicesContainer.innerHTML = ""; // clear old options
+
+        node.choices.forEach(choice => {
+            const btn = document.createElement("button");
+            btn.textContent = choice.text;
+            
+            // Add custom style if it is a restart/reset button
+            if (choice.next === "start") {
+                btn.classList.add("restart-btn");
+            }
+
+            btn.onclick = () => renderNode(choice.next);
+            choicesContainer.appendChild(btn);
+        });
+    }
+
+    // Initialize the game
+    renderNode("start");
+</script>
+
+</body>
+</html>
