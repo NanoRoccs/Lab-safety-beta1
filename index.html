@@ -169,7 +169,8 @@
             text: "An undergraduate student accidentally knocks over a bottle of 6M Hydrochloric Acid (HCl) on the benchtop. Approximately 100 mL is spreading. What is your immediate action?",
             choices: [
                 { text: "Grab paper towels from the sink to wipe it up immediately.", next: "acid_fail_towels" },
-                { text: "Evacuate the immediate bench area and locate the spill kit.", next: "acid_spill_kit" }
+                { text: "Evacuate the immediate bench area and locate the spill kit.", next: "acid_spill_kit" },
+                { text: "Do nothing.", next: "acid_fail_fuming"}
             ],
             progress: 40
         },
@@ -177,6 +178,12 @@
             text: "CRITICAL FAILURE:\nPaper towels react poorly, degrade rapidly, and fail to neutralize the acid, leading to skin exposure through saturated paper. Acid fumes fill the immediate air zone. The situation escalates.",
             type: "danger",
             choices: [{ text: "Restart Simulation", next: "start" }],
+            progress: 100
+        },
+        acid_fail_fuming: {
+            text: "CRITICAL FAILURE:\nLeaving spilled suming acid lead to acid fumes filling the room. The danger escalates.",
+            type: "danger",
+            choices: [{ text: "Restart Simulation", next: "start"}],
             progress: 100
         },
         acid_spill_kit: {
