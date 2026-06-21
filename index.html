@@ -4,17 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lab Safety & Hazard Management Simulator</title>
+    
+    <!-- =================================================================
+         [ส่วนที่ 1] การตกแต่งหน้าตาเกม (CSS)
+         คุณสามารถแก้ไขโค้ดสีและขนาดฟอนต์ในส่วนนี้เพื่อเปลี่ยนหน้าตาเว็บได้
+         ================================================================= -->
     <style>
+        /* ตัวแปรเก็บค่าสีมาตรฐานของเว็บ (แก้ไขเปลี่ยนสีหลักที่นี่ได้เลย) */
         :root {
-            --bg-color: #f7fafc;
-            --card-bg: #ffffff;
-            --text-main: #1a202c;
-            --text-muted: #4a5568;
-            --primary: #2b6cb0;
-            --primary-hover: #2c5282;
-            --danger: #c53030;
-            --success: #2f855a;
-            --border: #e2e8f0;
+            --bg-color: #f7fafc;       /* สีพื้นหลังของเว็บไซต์ */
+            --card-bg: #ffffff;        /* สีพื้นหลังของกล่องเกม */
+            --text-main: #1a202c;      /* สีตัวอักษรหลัก */
+            --text-muted: #4a5568;     /* สีตัวอักษรรอง/จาง */
+            --primary: #2b6cb0;        /* สีน้ำเงินหลัก (ปุ่มทั่วไป/หัวข้อ) */
+            --primary-hover: #2c5282;  /* สีปุ่มเวลานำเมาส์ไปชี้ */
+            --danger: #c53030;         /* สีแดง (ใช้แจ้งเตือนเวลา Game Over) */
+            --success: #2f855a;        /* สีเขียว (ใช้แสดงเวลาผ่านด่าน) */
+            --border: #e2e8f0;         /* สีเส้นขอบ */
+            --accent: #d69e2e;         /* สีทองเหลือง (ใช้ตอนเลือกไอเทมแต่งตัว) */
         }
 
         body {
@@ -30,6 +37,7 @@
             min-height: 100vh;
         }
 
+        /* กล่องคอนเทนเนอร์หลักของเกม */
         .game-container {
             background: var(--card-bg);
             max-width: 700px;
@@ -60,6 +68,7 @@
             margin-bottom: 10px;
         }
 
+        /* โครงสร้างแถบสถานะความคืบหน้า (Progress Bar) */
         .progress-container {
             display: flex;
             align-items: center;
@@ -91,17 +100,46 @@
 
         .scenario-text {
             font-size: 1.1rem;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             white-space: pre-line;
             color: #2d3748;
         }
 
+        /* ตารางแบ่งปุ่มเลือกแต่งตัวในด่านที่ 0 */
+        .ppe-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        /* หน้าตาของปุ่มเลือกอุปกรณ์แต่งตัว */
+        .ppe-item {
+            padding: 15px;
+            border: 2px solid #cbd5e0;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            background-color: #fff;
+        }
+
+        /* หน้าตาของปุ่มแต่งตัวเมื่อ "ถูกคลิกเลือก" */
+        .ppe-item.selected {
+            border-color: var(--accent);
+            background-color: #fefcbf;
+            color: #744210;
+        }
+
+        /* กล่องรวมปุ่มตัวเลือกคำตอบ */
         .choices-container {
             display: flex;
             flex-direction: column;
             gap: 14px;
         }
 
+        /* ลักษณะทั่วไปของปุ่มคำตอบ 1,2,3,4 */
         button {
             background-color: var(--card-bg);
             color: var(--text-main);
@@ -122,6 +160,21 @@
             transform: translateX(2px);
         }
 
+        /* ปุ่มเริ่มเกม/ปุ่มคำสั่งพิเศษ */
+        .action-btn {
+            background-color: var(--primary);
+            color: white;
+            text-align: center;
+            font-weight: 600;
+            border: none;
+        }
+
+        .action-btn:hover {
+            background-color: var(--primary-hover);
+            color: white;
+        }
+
+        /* กล่องแจ้งเตือนสถานะความล้มเหลว หรือ ความสำเร็จ */
         .outcome-card {
             padding: 18px;
             border-radius: 8px;
@@ -145,6 +198,7 @@
             color: var(--danger);
         }
 
+        /* ปุ่มเริ่มเกมใหม่เมื่อ Game Over */
         .restart-btn {
             background-color: #4a5568;
             color: white;
@@ -164,40 +218,65 @@
 </head>
 <body>
 
+<!-- =================================================================
+     [ส่วนที่ 2] โครงสร้างหน้าเว็บ (HTML โครงเปล่า)
+     ส่วนนี้ทำหน้าที่เป็นพื้นที่ว่างเพื่อให้ JavaScript นำข้อความมาแสดงผล
+     ================================================================= -->
 <div class="game-container">
     <header>
         <h1 id="game-title">ระบบจำลองการจัดการเหตุฉุกเฉินและสารเคมีอันตราย</h1>
+        <!-- หลอด Progress Bar -->
         <div class="progress-container">
             <div class="progress-bar"><div id="progress" class="progress-fill"></div></div>
             <span id="progress-lbl" class="progress-text">0%</span>
         </div>
     </header>
 
+    <!-- พื้นที่แสดงกล่องสถานะ (ผ่าน/ไม่ผ่าน) -->
     <div id="outcome" class="outcome-card"></div>
+    
+    <!-- พื้นที่แสดงชื่อด่านปัจจุบัน -->
     <h2 id="stage-title"></h2>
+    
+    <!-- พื้นที่แสดงเนื้อเรื่องสเตจนั้นๆ -->
     <div id="scenario" class="scenario-text">กำลังโหลดระบบ...</div>
+    
+    <!-- พื้นที่สำหรับสร้างปุ่มเลือกอุปกรณ์แต่งตัว (จะแสดงผลเฉพาะด่านที่ 0) -->
+    <div id="ppe-zone" class="ppe-grid" style="display:none;"></div>
+    
+    <!-- พื้นที่สำหรับใส่ปุ่มตัวเลือกคำตอบ 1, 2, 3, 4 -->
     <div id="choices" class="choices-container"></div>
 </div>
 
+<!-- =================================================================
+     [ส่วนที่ 3] สมองและกลไกควบคุมเกม (JavaScript)
+     นี่คือส่วนที่คุณสามารถแก้ไขเนื้อเรื่อง แก้ไขด่าน หรือเพิ่มเงื่อนไขเองได้
+     ================================================================= -->
 <script>
-    // อาร์เรย์จำลองสเตจที่คัดลอกมาจากสคริปต์ Python ของคุณ
+    /* -----------------------------------------------------------------
+       [จุดแก้ไขที่ 1]: ตัวแปรเก็บสถานะการเลือกชุด PPE ของผู้เล่น
+       ลอจิกจะบันทึกว่าชิ้นไหนเป็น true (ใส่) หรือ false (ไม่ได้ใส่)
+       ----------------------------------------------------------------- */
+    let userPPE = {
+        labCoat: false,       // เสื้อกาวน์
+        goggles: false,       // แว่นนิรภัย
+        leatherShoes: false,  // รองเท้าหุ้มส้น
+        contactLenses: false  // คอนแทคเลนส์
+    };
+
+    /* -----------------------------------------------------------------
+       [จุดแก้ไขที่ 2]: คลังเนื้อเรื่อง ด่านที่ 1 ถึง ด่านที่ 10
+       คุณสามารถแก้ไขข้อความใน "" หรือเปลี่ยนตัวเลขคำตอบตรงนี้ได้เลยครับ
+       - "title": ชื่อด่าน
+       - "story": คำอธิบายเหตุการณ์
+       - "options": ตัวเลือก 4 ข้อ (พิมพ์เลข 1-4 นำหน้าไว้ให้ผู้เล่นเห็นชัดเจน)
+       - "correct": เลขข้อที่ถูกต้อง (1 หรือ 2 หรือ 3 หรือ 4)
+       - "critical_error": เลขข้อที่เป็นความล้มเหลวร้ายแรง (ถ้าไม่มีให้ใส่ null)
+       - "fail_message": ข้อความแสดงเมื่อกดโดนข้อ critical_error
+       ----------------------------------------------------------------- */
     const stages = [
         {
             "id": 1,
-            "title": "การเตรียมตัวเข้าพื้นที่",
-            "story": "คุณมาถึงตึกมหามกุฏเพื่อเริ่มงานวิจัยวันแรก... คุณต้องจัดการเครื่องแต่งกายอย่างไรก่อนเข้าแล็บ?",
-            "options": [
-                "1. สวมเสื้อคลุมปฏิบัติการ ติดกระดุมครบ สวมแว่นตานิรภัย และรองเท้าหนังหุ้มส้น",
-                "2. สวมเสื้อคลุมปฏิบัติการ สวมรองเท้าผ้าใบ และพกขวดน้ำเข้าไป",
-                "3. สวมเสื้อคลุมปฏิบัติการทับชุดนักศึกษาโดยไม่ติดกระดุม และสวมคอนแทคเลนส์",
-                "4. สวมแว่นสายตาปกติแทนแว่นนิรภัย และสวมรองเท้าส้นสูง"
-            ],
-            "correct": 1,
-            "critical_error": 4,
-            "fail_message": "คุณสะดุดล้มหัวกระแทกพื้นเพราะสวมรองเท้าส้นสูง"
-        },
-        {
-            "id": 2,
             "title": "เริ่มยังไงดีนะ",
             "story": "สารที่คุณจะสังเคราะห์วันนี้จำเป็นต้องใช้ n-butyl lithium คุณคุ้นมาก ๆ ว่าสารตัวนี้ค่อนข้างอันตรายแต่ก็ไม่ค่อยมั่นใจเท่าไหร่ จะเลือกทำงานกับมันยังไงดี",
             "options": [
@@ -211,7 +290,7 @@
             "fail_message": null
         },
         {
-            "id": 3,
+            "id": 2,
             "title": "มีพัสดุมาส่งครับ",
             "story": "ระหว่างวางแผนการทดลองมีเจ้าหน้าที่แจ้งว่าได้นำแก๊สไนโตรเจนมาส่ง ให้คุณไปเคลื่อนย้ายถังมาจากหน้าลิฟต์ขนของ",
             "options": [
@@ -225,7 +304,7 @@
             "fail_message": "ถังที่กลิ้งมาไปชนขอบกำแพงทำให้เกิดรอยรั่ว แก๊สที่อัดแน่นด้วยความดันระเบิดออกอย่างรุนแรง"
         },
         {
-            "id": 4,
+            "id": 3,
             "title": "ทำไมลมมันเบา ๆ",
             "story": "หลังจากต่อถังแก๊สไนโตรเจนเรียบร้อยแล้ว คุณได้เริ่มลงมือปฏิบัติการตามแผนที่วางไว้ ระหว่างที่คุณกำลังถ่ายเท n-butyl lithium ในตู้ดูดควันปรากฏว่ามีเสียงเตือนเรื่องแรงลมเกิดขึ้น",
             "options": [
@@ -239,7 +318,7 @@
             "fail_message": "n-butyl lithium สัมผัสความชื้นในอากาศและเกิดเปลวไฟลุกทันที คุณได้รับบาดเจ็บจากไฟไหม้และห้องปฏิบัติการเสียหายอย่างรุนแรง"
         },
         {
-            "id": 5,
+            "id": 4,
             "title": "เร่งปฏิกิริยากันหน่อย",
             "story": "หลังจากถ่ายสารเรียบร้อยแล้วคุณจำเป็นจะต้องให้ความร้อนกับปฏิกิริยานี้ซึ่งใช้ hexane เป็นตัวทำละลาย (จุดเดือด 69 องศาเซลเซียส)",
             "options": [
@@ -253,7 +332,7 @@
             "fail_message": "เตาไฟฟ้าเกิดการทำงานผิดพลาดทำให้เกิดไอระเหยของตัวทำละลายซึ่งเกิดการวาบและติดไฟขึ้นและลามไปยังขวดสารเคมีใกล้ ๆ ทำให้เกิดการระเบิดอย่างรุนแรง!"
         },
         {
-            "id": 6,
+            "id": 5,
             "title": "อุบัติเหตุเกิดขึ้นได้",
             "story": "ระหว่างที่คุณจะลุกไปหยิบบีกเกอร์ที่โต๊ะด้านหลังคุณเกิดปัดขวดกรดซัลฟิวริกเข้มข้นที่วางอยู่ใกล้ ๆ ตกพื้นแตก มีกรดบางส่วนกระเด็นโดนกางเกงของคุณ",
             "options": [
@@ -267,7 +346,7 @@
             "fail_message": "เกิดปฏิกิริยาสะเทินระหว่างกรดกับเบสทำให้เกิดความร้อนขึ้นซึ่งส่งผลให้เกิดแผลไหม้จากความร้อนตามมา นอกจากนี้คุณยังถูกเบสทำลายเนื้อเยื่อผิวหนังเพิ่มขึ้นด้วย"
         },
         {
-            "id": 7,
+            "id": 6,
             "title": "ไฟลามทุ่ง",
             "story": "ระหว่างที่คุณกำลังวุ่นกับการล้างขาอยู่นั้น ปฏิกิริยาที่ตั้งไว้เกิดความร้อนมากเกินจนทำให้เกิดไฟลุกขึ้น ประกายไฟที่เล็ดลอดออกมาจากตู้ดูดควันเริ่มไปติดที่กองกระดาษและลามไปยังชั้นวางสารเคมี",
             "options": [
@@ -281,7 +360,7 @@
             "fail_message": "น้ำที่สาดไปเกิดปฏิกิริยากับสารเคมีบางชนิดทำให้เพลิงระเบิด คุณโดนแรงระเบิดนั้นจนทำให้บาดเจ็บอย่างรุนแรง"
         },
         {
-            "id": 8,
+            "id": 7,
             "title": "กลิ่นลึกลับ",
             "story": "หลังจากดับไฟสำเร็จและควันจางลงคุณได้กลิ่นฉุนรุนแรงคล้ายแอมโมเนียและเริ่มรู้สึกวิงเวียนศีรษะ คุณนึกขึ้นได้ว่าที่ห้องแลบมีถังแก๊สแอมโมเนียซึ่งอาจจะรั่วจากอุบัติเหตุครั้งนี้ได้",
             "options": [
@@ -295,7 +374,7 @@
             "fail_message": "พัดลมระบายอากาศได้รับความเสียหายจากไฟไหม้จึงเกิดไฟฟ้าลัดวงจรขึ้นเมื่อเปิดสวิตช์ ประกายไฟที่เกิดขึ้นทำให้แก๊สที่รั่วไหลเกิดการระเบิดขึ้นทำให้ห้องแลบพังเสียหาย"
         },
         {
-            "id": 9,
+            "id": 8,
             "title": "เคลียร์จุดเกิดเหตุ",
             "story": "เมื่อสถานการณ์ทุกอย่างปลอดภัยแล้ว คุณต้องจัดการกับเศษแก้วและวัสดุดูดซับสารเคมีบนพื้น",
             "options": [
@@ -309,7 +388,7 @@
             "fail_message": null
         },
         {
-            "id": 10,
+            "id": 9,
             "title": "บทสรุปและการเรียนรู้",
             "story": "เมื่ออาจารย์ของคุณทราบเรื่องจึงได้บอกให้คุณเขียนรายงานเพื่อให้มหาวิทยาลัยรับทราบและนำข้อมูลไปปรับปรุงมาตรการความปลอดภัย",
             "options": [
@@ -324,18 +403,54 @@
         }
     ];
 
-    let currentStageIndex = 0;
+    /* ตัวแปรเก็บตำแหน่งด่านปัจจุบัน: เริ่มต้นที่ -1 หมายถึง ด่านแต่งตัว (ด่านที่ 0) */
+    let currentStageIndex = -1; 
 
+    /* -----------------------------------------------------------------
+       [ฟังก์ชันหลัก]: ทำหน้าที่วาดและแสดงผลองค์ประกอบต่างๆ บนหน้าจอ
+       ----------------------------------------------------------------- */
     function renderStage(index) {
         const outcomeCard = document.getElementById("outcome");
         const choicesContainer = document.getElementById("choices");
+        const ppeZone = document.getElementById("ppe-zone");
         
-        // ล้างสถานะข้อความแจ้งเตือนเดิม
+        // ล้างกล่องข้อความเตือนและปุ่มเก่าออกทุกครั้งที่เปลี่ยนด่าน
         outcomeCard.className = "outcome-card";
         outcomeCard.textContent = "";
         choicesContainer.innerHTML = "";
+        ppeZone.style.display = "none";
 
-        // กรณีที่ผ่านหมดทุกด่าน (จบเกมแบบปลอดภัย)
+        // ---- [กรณีด่านที่ 0]: โหมดตู้ล็อกเกอร์แต่งตัว ----
+        if (index === -1) {
+            document.getElementById("stage-title").textContent = "ด่านที่ 0: การเตรียมตัวเข้าพื้นที่ ณ ตึกมหามกุฏ";
+            document.getElementById("scenario").textContent = "คุณกำลังยืนอยู่หน้าห้องปฏิบัติการวิจัยวิชาเคมีในวันแรก... มีตู้ล็อกเกอร์อุปกรณ์วางอยู่ตรงหน้า โปรดเลือกเสื้อผ้าและอุปกรณ์ป้องกัน (PPE) ที่คุณต้องการสวมใส่เข้าแล็บ (คลิกเพื่อเลือก/ปลดออก):";
+            
+            // สั่งเปิดกล่องตาราง PPE และสร้างปุ่มไอเทม
+            ppeZone.style.display = "grid";
+            renderPPEButtons();
+
+            // สร้างปุ่มกดเพื่อยอมรับการแต่งตัวแล้วเข้าแล็บ
+            const enterBtn = document.createElement("button");
+            enterBtn.textContent = "แต่งตัวเสร็จแล้ว เดินเข้าห้องปฏิบัติการ ➡️";
+            enterBtn.classList.add("action-btn");
+            enterBtn.onclick = () => {
+                // เช็กเงื่อนไขตายทันที: ถ้าไม่ได้เลือกรองเท้าหุ้มส้น (leatherShoes === false)
+                if (!userPPE.leatherShoes) {
+                    triggerGameOver("คุณสะดุดล้มหัวกระแทกพื้นหน้าประตูห้องแล็บ เนื่องจากรองเท้าที่คุณใส่ไม่เหมาะสมและไม่ปลอดภัยสำหรับการทำงาน!");
+                    return;
+                }
+                currentStageIndex = 0; // เปลี่ยนค่าเป็นด่านที่ 1 ในอาร์เรย์สเตจหลัก
+                renderStage(currentStageIndex);
+            };
+            choicesContainer.appendChild(enterBtn);
+            
+            // ตั้งค่าแถบ Progress เริ่มต้น
+            document.getElementById("progress").style.width = "5%";
+            document.getElementById("progress-lbl").textContent = "5%";
+            return;
+        }
+
+        // ---- [กรณีผ่านหมดทุกด่าน]: แสดงฉากจบแบบสำเร็จ ----
         if (index >= stages.length) {
             document.getElementById("stage-title").textContent = "🎉 ยินดีด้วย! คุณผ่านการทดสอบ";
             document.getElementById("scenario").textContent = "คุณมีทักษะการจัดการความปลอดภัยและสารเคมีอันตรายในระดับยอดเยี่ยม สามารถปฏิบัติงานวิจัย ณ อาคารมหามกุฏได้อย่างปลอดภัย";
@@ -345,68 +460,140 @@
             const restartBtn = document.createElement("button");
             restartBtn.textContent = "เริ่มทำแบบทดสอบใหม่อีกครั้ง";
             restartBtn.classList.add("restart-btn");
-            restartBtn.onclick = () => {
-                currentStageIndex = 0;
-                renderStage(currentStageIndex);
-            };
+            restartBtn.onclick = () => resetGame();
             choicesContainer.appendChild(restartBtn);
             return;
         }
 
+        // ---- [กรณีด่านเล่นเกมปกติ 1-10] ----
         const stage = stages[index];
-        
-        // อัปเดตเนื้อหาด่าน
-        document.getElementById("stage-title").textContent = `ด่านที่ ${stage.id}: ${stage.title}`;
+        document.getElementById("stage-title").textContent = `ด่านที่ ${index + 1}: ${stage.title}`;
         document.getElementById("scenario").textContent = stage.story;
 
-        // คำนวณและแสดงค่าความคืบหน้า (Progress Bar)
-        const progressPercent = Math.round((index / stages.length) * 100);
+        // คำนวณร้อยละเพื่อเพิ่มความยาวของหลอด Progress Bar
+        const progressPercent = Math.round(((index + 1) / (stages.length + 1)) * 100);
         document.getElementById("progress").style.width = `${progressPercent}%`;
         document.getElementById("progress-lbl").textContent = `${progressPercent}%`;
 
-        // สร้างปุ่มเลือกคำตอบ (ตัวเลือก 1-4)
+        // วนลูปเพื่อนำหัวข้อตัวเลือกตัวอักษรมาสร้างเป็นปุ่มกด HTML 
         stage.options.forEach((option, optionIdx) => {
-            const currentOptionNumber = optionIdx + 1; // เปลี่ยนเป็นเลขคำตอบเริ่มจาก 1
+            const currentOptionNumber = optionIdx + 1; // แปลง index ลูป (0,1,2,3) ให้เป็นข้อ (1,2,3,4)
             const btn = document.createElement("button");
             btn.textContent = option;
-            
             btn.onclick = () => handleAnswer(stage, currentOptionNumber);
             choicesContainer.appendChild(btn);
         });
     }
 
-    function handleAnswer(stage, chosenOption) {
-        const outcomeCard = document.getElementById("outcome");
-        const choicesContainer = document.getElementById("choices");
+    /* -----------------------------------------------------------------
+       [ฟังก์ชันย่อย]: วาดปุ่มเลือก PPE 4 ชิ้นลงในหน้าจอ และเก็บสถานะลงตัวแปร
+       ----------------------------------------------------------------- */
+    function renderPPEButtons() {
+        const ppeZone = document.getElementById("ppe-zone");
+        ppeZone.innerHTML = ""; // ล้างข้อมูลเดิม
 
+        // อาร์เรย์คู่คีย์ไอเทมและชื่อปุ่ม
+        const items = [
+            { key: "labCoat", label: "🥼 เสื้อคลุมปฏิบัติการ (ติดกระดุมครบ)" },
+            { key: "goggles", label: "🥽 แว่นตานิรภัย (Safety Goggles)" },
+            { key: "leatherShoes", label: "👞 รองเท้าหนังหุ้มส้นหุ้มมิดชิด" },
+            { key: "contactLenses", label: "👁️ ใส่คอนแทคเลนส์แฟชั่น" }
+        ];
+
+        // วนลูปสร้างปุ่มแต่งตัว
+        items.forEach(item => {
+            const div = document.createElement("div");
+            // ถ้าค่าของไอเทมนั้นเป็น true จะได้คลาส 'selected' ไปเปลี่ยนสีปุ่มไฮไลต์สีเหลือง
+            div.className = `ppe-item ${userPPE[item.key] ? 'selected' : ''}`;
+            div.textContent = item.label;
+            
+            // เมื่อคลิกปุ่ม จะทำการสลับสถานะจาก true เป็น false หรือ false เป็น true แล้ววาดใหม่
+            div.onclick = () => {
+                userPPE[item.key] = !userPPE[item.key];
+                renderPPEButtons();
+            };
+            ppeZone.appendChild(div);
+        });
+    }
+
+    /* -----------------------------------------------------------------
+       [จุดแก้ไขที่ 3]: ระบบตรวจสอบเงื่อนไขความถูกต้องและการส่งผลต่อเนื่อง
+       คุณสามารถเข้ามาเพิ่มลอจิกเงื่อนไขของชุดเสื้อผ้าในด่านอื่นๆ ที่นี่ได้
+       ----------------------------------------------------------------- */
+    function handleAnswer(stage, chosenOption) {
+        
+        // --- 🟢 ตัวอย่างเงื่อนไขต่อเนื่องใน ด่านที่ 3 (เรื่องตู้ดูดควัน n-butyl lithium) ---
+        // เงื่อนไข: ถ้าเป็นด่านที่ไอดีเท่ากับ 4 (คือด่าน 3 ในแถบชื่อ) และผู้เล่นเลือกข้อถูก (ข้อ 2)
+        if (stage.id === 4 && chosenOption === stage.correct) {
+            // เช็กต่อว่า หากไม่ได้เลือกเสื้อกาวน์ (labCoat เป็น false) จะตายทันที
+            if (!userPPE.labCoat) {
+                triggerGameOver("💥 ล้มเหลวเนื่องจากเครื่องแต่งกาย: แม้คุณจะปรับหน้าต่างตู้ดูดควันถูกต้อง แต่เนื่องจากคุณลืมใส่เสื้อกาวน์เคมี สาร n-butyl lithium เกิดติดไฟเล็กน้อยและกระเด็นเปื้อนชุดนักศึกษาของคุณโดยตรงจนไฟลุกท่วมตัว!");
+                return; // หยุดทำงานฟังก์ชันทันที ไม่ให้ไปด่านต่อไป
+            }
+        }
+
+        // --- 🟢 ตัวอย่างเงื่อนไขต่อเนื่องใน ด่านที่ 5 (เรื่องกรดซัลฟิวริกเข้มข้นหกใส่ขา) ---
+        if (stage.id === 6) {
+            // เช็กกรณีลืมใส่เสื้อกาวน์
+            if (!userPPE.labCoat && chosenOption === stage.correct) {
+                triggerGameOver("💥 ล้มเหลวเนื่องจากเครื่องแต่งกาย: คุณพยายามวิ่งไปล้างตัวที่ Safety Shower แต่เนื่องจากคุณไม่ได้สวมเสื้อกาวน์ปกป้องเนื้อผ้า กรดเข้มข้นจึงซึมทะลุกางเกงเข้ากัดทำลายผิวหนังเนื้อเยื่อขาทันทีอย่างรุนแรงก่อนจะไปถึงฝักบัว!");
+                return;
+            }
+            // เช็กกรณีลืมใส่แว่นตา หรือ ไปใส่คอนแทคเลนส์
+            if ((!userPPE.goggles || userPPE.contactLenses) && chosenOption === stage.correct) {
+                triggerGameOver("💥 ล้มเหลวเนื่องจากเครื่องแต่งกาย: สารเคมีกระเด็นโดนขาและไอระเหยกรดพุ่งขึ้นหน้า แต่เนื่องจากคุณลืมใส่แว่นตานิรภัย (หรือใส่คอนแทคเลนส์ที่ดักจับไอสารเคมีไว้ใต้เลนส์) ส่งผลให้กระจกตาไหม้และสูญเสียการมองเห็นถาวร!");
+                return;
+            }
+        }
+
+        // --- ระบบประเมินผลตัวเลือกแบบปกติจากสคริปต์ ---
         if (chosenOption === stage.correct) {
-            // หากตอบถูก ให้ย้ายไปสเตจถัดไปทันที
+            // ถ้าเลือกถูก ให้เลื่อนด่านถัดไป
             currentStageIndex++;
             renderStage(currentStageIndex);
         } else if (chosenOption === stage.critical_error) {
-            // เกิดข้อผิดพลาดร้ายแรง (Critical Error)
-            outcomeCard.classList.add("danger");
-            outcomeCard.textContent = "⚠ CRITICAL ERROR: เกิดอุบัติเหตุร้ายแรง!";
-            document.getElementById("scenario").textContent = stage.fail_message;
-            choicesContainer.innerHTML = ""; // ล้างตัวเลือกทิ้ง
-
-            // สร้างปุ่มรีสตาร์ทเพื่อเริ่มเกมใหม่
-            const resetBtn = document.createElement("button");
-            resetBtn.textContent = "กลับไปเริ่มด่านแรกใหม่";
-            resetBtn.classList.add("restart-btn");
-            resetBtn.onclick = () => {
-                currentStageIndex = 0;
-                renderStage(currentStageIndex);
-            };
-            choicesContainer.appendChild(resetBtn);
+            // ถ้าเลือกข้อที่เป็นความผิดพลาดร้ายแรง (Critical Error) ให้จบเกมทันที
+            triggerGameOver(stage.fail_message);
         } else {
-            // หากเลือกคำตอบอื่นที่ผิด แต่ไม่ใช่ข้อวิกฤต (รวมถึงกรณีด่านที่ไม่มี critical error)
+            // ถ้าเลือกข้อที่ผิดธรรมดา ให้ขึ้นป้ายเตือน แต่ยังไม่ตาย (ให้กดเลือกข้อใหม่ได้)
+            const outcomeCard = document.getElementById("outcome");
             outcomeCard.className = "outcome-card danger";
             outcomeCard.textContent = "❌ คำตอบไม่ถูกต้อง: วิธีปฏิบัตินี้ยังไม่ปลอดภัยพอ กรุณาพิจารณาใหม่อีกครั้ง";
         }
     }
 
-    // เริ่มรันระบบครั้งแรก
+    /* -----------------------------------------------------------------
+       [ฟังก์ชันย่อย]: แสดงผลหน้าจอสีแดงเมื่อ Game Over (ผู้เล่นทำแล็บพังหรือตาย)
+       ----------------------------------------------------------------- */
+    function triggerGameOver(message) {
+        const outcomeCard = document.getElementById("outcome");
+        const choicesContainer = document.getElementById("choices");
+        
+        document.getElementById("ppe-zone").style.display = "none";
+        outcomeCard.className = "outcome-card danger";
+        outcomeCard.textContent = "⚠ GAME OVER: เกิดอุบัติเหตุร้ายแรง!";
+        document.getElementById("scenario").textContent = message;
+        choicesContainer.innerHTML = ""; // ล้างชอยส์ตัวเลือกทิ้ง
+
+        // สร้างปุ่มพากลับไปเริ่มด่านแต่งตัวใหม่ทั้งหมด
+        const resetBtn = document.createElement("button");
+        resetBtn.textContent = "กลับไปเริ่มต้นแต่งตัวและเข้าแล็บใหม่";
+        resetBtn.classList.add("restart-btn");
+        resetBtn.onclick = () => resetGame();
+        choicesContainer.appendChild(resetBtn);
+    }
+
+    /* -----------------------------------------------------------------
+       [ฟังก์ชันย่อย]: รีเซ็ตเคลียร์ค่าทุกอย่างในระบบเพื่อเริ่มนับหนึ่งใหม่
+       ----------------------------------------------------------------- */
+    function resetGame() {
+        // คืนค่า PPE ทั้งหมดให้กลายเป็นยังไม่ได้เลือก (false)
+        userPPE = { labCoat: false, goggles: false, leatherShoes: false, contactLenses: false };
+        currentStageIndex = -1; // วิ่งกลับไปหน้าด่านล็อกเกอร์สวมชุด
+        renderStage(currentStageIndex);
+    }
+
+    // สั่งเริ่มรันโค้ดประมวลผลด่านที่ 0 ครั้งแรกทันทีเมื่อโหลดหน้าเว็บสำเร็จ
     renderStage(currentStageIndex);
 </script>
 
