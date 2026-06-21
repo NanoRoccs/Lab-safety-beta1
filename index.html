@@ -415,18 +415,18 @@
        [ฟังก์ชันหลัก]: ทำหน้าที่วาดและแสดงผลองค์ประกอบต่างๆ บนหน้าจอ
        ----------------------------------------------------------------- */
     function renderStage(index) {
-        const outcomeCard = document.getElementById("outcome");
-        const choicesContainer = document.getElementById("choices");
-        const ppeZone = document.getElementById("ppe-zone");
-        
-        // ล้างข้อมูลหน้าจอเดิม
-        outcomeCard.className = "outcome-card";
-        outcomeCard.textContent = "";
-        choicesContainer.innerHTML = "";
-        ppeZone.style.display = "none";
+    const outcomeCard = document.getElementById("outcome");
+    const choicesContainer = document.getElementById("choices");
+    const ppeZone = document.getElementById("ppe-zone");
+    
+    // ล้างข้อมูลหน้าจอเดิม
+    outcomeCard.className = "outcome-card";
+    outcomeCard.textContent = "";
+    choicesContainer.innerHTML = "";
+    ppeZone.style.display = "none";
 
-        // ---- [ใหม่ล่าสุด] ด่านที่ -2: หน้ากรอกชื่อนักเรียนก่อนเริ่มเกม ----
-        if (index === -2) {
+    // ---- [ใหม่ล่าสุด] ด่านที่ -2: หน้ากรอกชื่อนักเรียนก่อนเริ่มเกม ----
+    if (index === -2) {
         document.getElementById("stage-title").textContent = "ระบบลงทะเบียนนักศึกษา";
         document.getElementById("scenario").textContent = "ยินดีต้อนรับเข้าสู่ระบบจำลองปฏิบัติการ ตึกมหามกุฏ โปรดกรอกชื่อ-นามสกุลของคุณก่อนเริ่มทำการทดสอบ:";
         
@@ -470,8 +470,8 @@
         return;
     }
 
-        // ---- [กรณีด่านที่ 0]: โหมดตู้ล็อกเกอร์แต่งตัว ----
-        if (index === -1) {
+    // ---- ด่านที่ -1: โหมดตู้ล็อกเกอร์แต่งตัว (ของเดิม แต่ปรับ Progress Bar นิดหน่อย) ----
+    if (index === -1) {
         document.getElementById("stage-title").textContent = "ด่านที่ 0: การเตรียมตัวเข้าพื้นที่ ณ ตึกมหามกุฏ";
         // นำชื่อนักเรียนมาทักทายในเนื้อเรื่องได้ด้วยการใช้ ${studentName}
         document.getElementById("scenario").textContent = `สวัสดีคุณ ${studentName} คุณกำลังยืนอยู่หน้าห้องปฏิบัติการวิจัยวิชาเคมีในวันแรก... มีตู้ล็อกเกอร์อุปกรณ์วางอยู่ตรงหน้า โปรดเลือกเสื้อผ้าและอุปกรณ์ป้องกัน (PPE) ที่คุณต้องการสวมใส่เข้าแล็บ:`;
@@ -498,8 +498,8 @@
         return;
     }
 
-        // ---- [กรณีผ่านหมดทุกด่าน]: แสดงฉากจบแบบสำเร็จ ----
-        if (index >= stages.length) {
+    // ---- ด่านจบเกมสำเร็จ (ของเดิม แต่เพิ่มการแสดงชื่อตอนชนะ) ----
+    if (index >= stages.length) {
         document.getElementById("stage-title").textContent = "🎉 ยินดีด้วย! คุณผ่านการทดสอบ";
         document.getElementById("scenario").textContent = `นักศึกษา: ${studentName}\nคุณมีทักษะการจัดการความปลอดภัยและสารเคมีอันตรายในระดับยอดเยี่ยม สามารถปฏิบัติงานวิจัย ณ อาคารมหามกุฏได้อย่างปลอดภัยตามมาตรฐาน`;
         document.getElementById("progress").style.width = "100%";
@@ -512,6 +512,8 @@
         choicesContainer.appendChild(restartBtn);
         return;
     }
+
+    // ---- [ส่วนด่านเนื้อเรื่องทั่วไป 1-10 ด้านล่างให้คงเดิมไว้] ----
         // ---- [กรณีด่านเล่นเกมปกติ 1-10] ----
         const stage = stages[index];
         document.getElementById("stage-title").textContent = `ด่านที่ ${index + 1}: ${stage.title}`;
@@ -615,22 +617,23 @@
        [ฟังก์ชันย่อย]: แสดงผลหน้าจอสีแดงเมื่อ Game Over (ผู้เล่นทำแล็บพังหรือตาย)
        ----------------------------------------------------------------- */
     function triggerGameOver(message) {
-        const outcomeCard = document.getElementById("outcome");
-        const choicesContainer = document.getElementById("choices");
-        
-        document.getElementById("ppe-zone").style.display = "none";
-        outcomeCard.className = "outcome-card danger";
-        outcomeCard.textContent = "⚠ GAME OVER: เกิดอุบัติเหตุร้ายแรง!";
-        document.getElementById("scenario").textContent = message;
-        choicesContainer.innerHTML = ""; // ล้างชอยส์ตัวเลือกทิ้ง
+    const outcomeCard = document.getElementById("outcome");
+    const choicesContainer = document.getElementById("choices");
+    
+    document.getElementById("ppe-zone").style.display = "none";
+    outcomeCard.className = "outcome-card danger";
+    
+    // 🔴 ปรับหัวข้อ Game over ให้ระบุชื่อนักเรียนที่ทำแล็บพังชัดเจน
+    outcomeCard.textContent = `⚠ GAME OVER: คุณ ${studentName} เกิดอุบัติเหตุร้ายแรง!`;
+    document.getElementById("scenario").textContent = message;
+    choicesContainer.innerHTML = "";
 
-        // สร้างปุ่มพากลับไปเริ่มด่านแต่งตัวใหม่ทั้งหมด
-        const resetBtn = document.createElement("button");
-        resetBtn.textContent = "กลับไปเริ่มต้นแต่งตัวและเข้าแล็บใหม่";
-        resetBtn.classList.add("restart-btn");
-        resetBtn.onclick = () => resetGame();
-        choicesContainer.appendChild(resetBtn);
-    }
+    const resetBtn = document.createElement("button");
+    resetBtn.textContent = "กลับไปเริ่มต้นแต่งตัวและเข้าแล็บใหม่";
+    resetBtn.classList.add("restart-btn");
+    resetBtn.onclick = () => resetGame();
+    choicesContainer.appendChild(resetBtn);
+}
 
     /* -----------------------------------------------------------------
        [ฟังก์ชันย่อย]: รีเซ็ตเคลียร์ค่าทุกอย่างในระบบเพื่อเริ่มนับหนึ่งใหม่
@@ -642,9 +645,10 @@
         renderStage(currentStageIndex);
     }
 
-    // สั่งเริ่มรันโค้ดประมวลผลด่านที่ 0 ครั้งแรกทันทีเมื่อโหลดหน้าเว็บสำเร็จ
+    // เดิมเป็น renderStage(currentStageIndex); ให้เปลี่ยนตัวแปรด้านบนและฟังก์ชันเป็นแบบนี้
+    currentStageIndex = -2; 
     renderStage(currentStageIndex);
-</script>
+    </script>
 
 </body>
 </html>
