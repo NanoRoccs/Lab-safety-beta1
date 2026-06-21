@@ -257,6 +257,9 @@
        [จุดแก้ไขที่ 1]: ตัวแปรเก็บสถานะการเลือกชุด PPE ของผู้เล่น
        ลอจิกจะบันทึกว่าชิ้นไหนเป็น true (ใส่) หรือ false (ไม่ได้ใส่)
        ----------------------------------------------------------------- */
+    // ตัวแปรสำหรับเก็บชื่อนักเรียน
+    let studentName = "";
+    
     let userPPE = {
         labCoat: false,       // เสื้อกาวน์
         goggles: false,       // แว่นนิรภัย
@@ -416,57 +419,99 @@
         const choicesContainer = document.getElementById("choices");
         const ppeZone = document.getElementById("ppe-zone");
         
-        // ล้างกล่องข้อความเตือนและปุ่มเก่าออกทุกครั้งที่เปลี่ยนด่าน
+        // ล้างข้อมูลหน้าจอเดิม
         outcomeCard.className = "outcome-card";
         outcomeCard.textContent = "";
         choicesContainer.innerHTML = "";
         ppeZone.style.display = "none";
 
+        // ---- [ใหม่ล่าสุด] ด่านที่ -2: หน้ากรอกชื่อนักเรียนก่อนเริ่มเกม ----
+        if (index === -2) {
+        document.getElementById("stage-title").textContent = "ระบบลงทะเบียนนักศึกษา";
+        document.getElementById("scenario").textContent = "ยินดีต้อนรับเข้าสู่ระบบจำลองปฏิบัติการ ตึกมหามกุฏ โปรดกรอกชื่อ-นามสกุลของคุณก่อนเริ่มทำการทดสอบ:";
+        
+        // สร้างช่องกรอกชื่อ (Input)
+        const nameInput = document.createElement("input");
+        nameInput.type = "text";
+        nameInput.id = "student-name-input";
+        nameInput.placeholder = "ตัวอย่าง: นายสมชาย ตั้งใจเรียน";
+        nameInput.style.width = "95%";
+        nameInput.style.padding = "12px";
+        nameInput.style.fontSize = "1rem";
+        nameInput.style.borderRadius = "8px";
+        nameInput.style.border = "2px solid #cbd5e0";
+        nameInput.style.marginBottom = "20px";
+        // ถ้าเคยพิมพ์ไว้แล้วให้แสดงชื่อเดิม
+        if(studentName) nameInput.value = studentName; 
+        
+        // นำช่องกรอกชื่อไปหย่อนไว้ในโซนเนื้อเรื่อง
+        document.getElementById("scenario").appendChild(document.createElement("br"));
+        document.getElementById("scenario").appendChild(document.createElement("br"));
+        document.getElementById("scenario").appendChild(nameInput);
+
+        // สร้างปุ่มถัดไป
+        const nextBtn = document.createElement("button");
+        nextBtn.textContent = "บันทึกข้อมูลและไปตู้ล็อกเกอร์แต่งตัว ➡️";
+        nextBtn.classList.add("action-btn");
+        nextBtn.onclick = () => {
+            const inputValue = document.getElementById("student-name-input").value.trim();
+            if (!inputValue) {
+                alert("โปรดกรอกชื่อ-นามสกุลของคุณก่อนเข้าสู่เกมครับ!");
+                return;
+            }
+            studentName = inputValue; // บันทึกชื่อลงตัวแปร
+            currentStageIndex = -1;    // ย้ายไปด่านล็อกเกอร์แต่งตัว
+            renderStage(currentStageIndex);
+        };
+        choicesContainer.appendChild(nextBtn);
+        
+        document.getElementById("progress").style.width = "0%";
+        document.getElementById("progress-lbl").textContent = "0%";
+        return;
+    }
+
         // ---- [กรณีด่านที่ 0]: โหมดตู้ล็อกเกอร์แต่งตัว ----
         if (index === -1) {
-            document.getElementById("stage-title").textContent = "ด่านที่ 0: การเตรียมตัวเข้าพื้นที่ ณ ตึกมหามกุฏ";
-            document.getElementById("scenario").textContent = "คุณกำลังยืนอยู่หน้าห้องปฏิบัติการวิจัยวิชาเคมีในวันแรก... มีตู้ล็อกเกอร์อุปกรณ์วางอยู่ตรงหน้า โปรดเลือกเสื้อผ้าและอุปกรณ์ป้องกัน (PPE) ที่คุณต้องการสวมใส่เข้าแล็บ (คลิกเพื่อเลือก/ปลดออก):";
-            
-            // สั่งเปิดกล่องตาราง PPE และสร้างปุ่มไอเทม
-            ppeZone.style.display = "grid";
-            renderPPEButtons();
+        document.getElementById("stage-title").textContent = "ด่านที่ 0: การเตรียมตัวเข้าพื้นที่ ณ ตึกมหามกุฏ";
+        // นำชื่อนักเรียนมาทักทายในเนื้อเรื่องได้ด้วยการใช้ ${studentName}
+        document.getElementById("scenario").textContent = `สวัสดีคุณ ${studentName} คุณกำลังยืนอยู่หน้าห้องปฏิบัติการวิจัยวิชาเคมีในวันแรก... มีตู้ล็อกเกอร์อุปกรณ์วางอยู่ตรงหน้า โปรดเลือกเสื้อผ้าและอุปกรณ์ป้องกัน (PPE) ที่คุณต้องการสวมใส่เข้าแล็บ:`;
+        
+        ppeZone.style.display = "grid";
+        renderPPEButtons();
 
-            // สร้างปุ่มกดเพื่อยอมรับการแต่งตัวแล้วเข้าแล็บ
-            const enterBtn = document.createElement("button");
-            enterBtn.textContent = "แต่งตัวเสร็จแล้ว เดินเข้าห้องปฏิบัติการ ➡️";
-            enterBtn.classList.add("action-btn");
-            enterBtn.onclick = () => {
-                // เช็กเงื่อนไขตายทันที: ถ้าไม่ได้เลือกรองเท้าหุ้มส้น (leatherShoes === false)
-                if (!userPPE.leatherShoes) {
-                    triggerGameOver("คุณสะดุดล้มหัวกระแทกพื้นหน้าประตูห้องแล็บ เนื่องจากรองเท้าที่คุณใส่ไม่เหมาะสมและไม่ปลอดภัยสำหรับการทำงาน!");
-                    return;
-                }
-                currentStageIndex = 0; // เปลี่ยนค่าเป็นด่านที่ 1 ในอาร์เรย์สเตจหลัก
-                renderStage(currentStageIndex);
-            };
-            choicesContainer.appendChild(enterBtn);
-            
-            // ตั้งค่าแถบ Progress เริ่มต้น
-            document.getElementById("progress").style.width = "5%";
-            document.getElementById("progress-lbl").textContent = "5%";
-            return;
-        }
+        const enterBtn = document.createElement("button");
+        enterBtn.textContent = "แต่งตัวเสร็จแล้ว เดินเข้าห้องปฏิบัติการ ➡️";
+        enterBtn.classList.add("action-btn");
+        enterBtn.onclick = () => {
+            if (!userPPE.leatherShoes) {
+                // ส่งชื่อเข้าไปเตือนตอนตายตั้งแต่หน้าประตู
+                triggerGameOver(`คุณ ${studentName} สะดุดล้มหัวกระแทกพื้นหน้าประตูห้องแล็บ เนื่องจากรองเท้าที่คุณใส่ไม่เหมาะสมและไม่ปลอดภัยสำหรับการทำงาน!`);
+                return;
+            }
+            currentStageIndex = 0;
+            renderStage(currentStageIndex);
+        };
+        choicesContainer.appendChild(enterBtn);
+        
+        document.getElementById("progress").style.width = "5%";
+        document.getElementById("progress-lbl").textContent = "5%";
+        return;
+    }
 
         // ---- [กรณีผ่านหมดทุกด่าน]: แสดงฉากจบแบบสำเร็จ ----
         if (index >= stages.length) {
-            document.getElementById("stage-title").textContent = "🎉 ยินดีด้วย! คุณผ่านการทดสอบ";
-            document.getElementById("scenario").textContent = "คุณมีทักษะการจัดการความปลอดภัยและสารเคมีอันตรายในระดับยอดเยี่ยม สามารถปฏิบัติงานวิจัย ณ อาคารมหามกุฏได้อย่างปลอดภัย";
-            document.getElementById("progress").style.width = "100%";
-            document.getElementById("progress-lbl").textContent = "100%";
-            
-            const restartBtn = document.createElement("button");
-            restartBtn.textContent = "เริ่มทำแบบทดสอบใหม่อีกครั้ง";
-            restartBtn.classList.add("restart-btn");
-            restartBtn.onclick = () => resetGame();
-            choicesContainer.appendChild(restartBtn);
-            return;
-        }
-
+        document.getElementById("stage-title").textContent = "🎉 ยินดีด้วย! คุณผ่านการทดสอบ";
+        document.getElementById("scenario").textContent = `นักศึกษา: ${studentName}\nคุณมีทักษะการจัดการความปลอดภัยและสารเคมีอันตรายในระดับยอดเยี่ยม สามารถปฏิบัติงานวิจัย ณ อาคารมหามกุฏได้อย่างปลอดภัยตามมาตรฐาน`;
+        document.getElementById("progress").style.width = "100%";
+        document.getElementById("progress-lbl").textContent = "100%";
+        
+        const restartBtn = document.createElement("button");
+        restartBtn.textContent = "เริ่มทำแบบทดสอบใหม่อีกครั้ง";
+        restartBtn.classList.add("restart-btn");
+        restartBtn.onclick = () => resetGame();
+        choicesContainer.appendChild(restartBtn);
+        return;
+    }
         // ---- [กรณีด่านเล่นเกมปกติ 1-10] ----
         const stage = stages[index];
         document.getElementById("stage-title").textContent = `ด่านที่ ${index + 1}: ${stage.title}`;
