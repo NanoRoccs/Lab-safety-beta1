@@ -224,7 +224,7 @@
      ================================================================= -->
 <div class="game-container">
     <header>
-        <h1 id="game-title">ระบบจำลองการจัดการเหตุฉุกเฉินและสารเคมีอันตราย</h1>
+        <h1 id="game-title">Chem Safety 101</h1>
         <!-- หลอด Progress Bar -->
         <div class="progress-container">
             <div class="progress-bar"><div id="progress" class="progress-fill"></div></div>
@@ -431,14 +431,13 @@
 
     // ---- [ใหม่ล่าสุด] ด่านที่ -2: หน้ากรอกชื่อนักเรียนก่อนเริ่มเกม ----
     if (index === -2) {
-        document.getElementById("stage-title").textContent = "ระบบลงทะเบียนนักศึกษา";
-        document.getElementById("scenario").textContent = "ยินดีต้อนรับเข้าสู่ระบบจำลองปฏิบัติการ ตึกมหามกุฏ โปรดกรอกชื่อ-นามสกุลของคุณก่อนเริ่มทำการทดสอบ:";
+        document.getElementById("stage-title").textContent = "ระบบลงทะเบียนนิสิต";
+        document.getElementById("scenario").textContent = "ยินดีต้อนรับเข้าสู่ Chem Safety 101. โปรดกรอกชื่อของคุณก่อนเริ่มเกม:";
         
         // สร้างช่องกรอกชื่อ (Input)
         const nameInput = document.createElement("input");
         nameInput.type = "text";
         nameInput.id = "student-name-input";
-        nameInput.placeholder = "ตัวอย่าง: นายสมชาย ตั้งใจเรียน";
         nameInput.style.width = "95%";
         nameInput.style.padding = "12px";
         nameInput.style.fontSize = "1rem";
