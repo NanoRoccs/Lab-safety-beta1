@@ -487,11 +487,6 @@
         enterBtn.textContent = "แต่งตัวเสร็จแล้ว เดินเข้าห้องปฏิบัติการ ➡️";
         enterBtn.classList.add("action-btn");
         enterBtn.onclick = () => {
-            if (!userPPE.leatherShoes) {
-                // ส่งชื่อเข้าไปเตือนตอนตายตั้งแต่หน้าประตู
-                triggerGameOver(`คุณ ${studentName} สะดุดล้มหัวกระแทกพื้นหน้าประตูห้องแล็บ เนื่องจากรองเท้าที่คุณใส่ไม่เหมาะสมและไม่ปลอดภัยสำหรับการทำงาน!`);
-                return;
-            }
             currentStageIndex = 0;
             renderStage(currentStageIndex);
         };
@@ -547,8 +542,8 @@
 
         // อาร์เรย์คู่คีย์ไอเทมและชื่อปุ่ม
         const items = [
-            { key: "labCoat", label: "🥼 เสื้อคลุมปฏิบัติการ (ติดกระดุมครบ)" },
-            { key: "goggles", label: "🥽 แว่นตานิรภัย (Safety Goggles)" },
+            { key: "labCoat", label: "🥼 เสื้อคลุมปฏิบัติการ" },
+            { key: "goggles", label: "🥽 แว่นตานิรภัย" },
             { key: "leatherShoes", label: "👞 รองเท้าหนังหุ้มส้นหุ้มมิดชิด" },
             { key: "contactLenses", label: "👁️ ใส่คอนแทคเลนส์แฟชั่น" },
             { key: "crocsShoes", label: "🐊 รองเท้าครอคส์" },
